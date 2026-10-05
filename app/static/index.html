@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7fb" />
+    <meta name="description" content="Self-hosted website health monitoring dashboard" />
+    <title>Website Health Monitor</title>
+    <link rel="stylesheet" href="/static/app.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Website Health Monitor home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-copy">
+          <strong>Beacon</strong>
+          <small>WEBSITE HEALTH MONITOR</small>
+        </span>
+      </a>
+      <div class="topbar-right">
+        <span class="connection-indicator" id="connection-indicator" aria-live="polite">
+          <span class="indicator-dot"></span><span id="connection-label">Checking service</span>
+        </span>
+        <button class="button button-primary" id="add-site-button" type="button">
+          <span aria-hidden="true">＋</span> Add website
+        </button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="page-heading" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">MONITORING</p>
+          <h1 id="page-title">Overview</h1>
+          <p class="page-description">A clear view of what is healthy, what needs attention, and why.</p>
+        </div>
+        <div class="refresh-meta">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          <span>Auto-refreshes every 30 seconds</span>
+          <span class="meta-divider" aria-hidden="true"></span>
+          <span id="last-updated">Not refreshed yet</span>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="Monitoring summary">
+        <article class="summary-card summary-total">
+          <div class="summary-icon" aria-hidden="true">◉</div>
+          <div><p>Total websites</p><strong id="total-count">—</strong></div>
+          <span class="summary-caption">Configured targets</span>
+        </article>
+        <article class="summary-card summary-healthy">
+          <div class="summary-icon" aria-hidden="true">✓</div>
+          <div><p>Healthy</p><strong id="healthy-count">—</strong></div>
+          <span class="summary-caption">All critical checks pass</span>
+        </article>
+        <article class="summary-card summary-degraded">
+          <div class="summary-icon" aria-hidden="true">!</div>
+          <div><p>Needs attention</p><strong id="degraded-count">—</strong></div>
+          <span class="summary-caption">Degraded or unknown</span>
+        </article>
+        <article class="summary-card summary-down">
+          <div class="summary-icon" aria-hidden="true">×</div>
+          <div><p>Down</p><strong id="down-count">—</strong></div>
+          <span class="summary-caption">Confirmed outages</span>
+        </article>
+      </section>
+
+      <section class="sites-panel" aria-labelledby="sites-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="sites-title">Your websites</h2>
+            <p class="panel-subtitle">DNS, HTTP, TLS, and response-time checks</p>
+          </div>
+          <div class="panel-tools">
+            <label class="search-box">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <span class="visually-hidden">Search websites</span>
+              <input id="search-input" type="search" placeholder="Search websites" autocomplete="off" />
+            </label>
+            <label class="filter-select-label">
+              <span class="visually-hidden">Filter by health state</span>
+              <select id="state-filter">
+                <option value="all">All states</option>
+                <option value="HEALTHY">Healthy</option>
+                <option value="DEGRADED">Degraded</option>
+                <option value="DOWN">Down</option>
+                <option value="UNKNOWN">Unknown</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="loading-state" id="loading-state" role="status">
+          <span class="spinner" aria-hidden="true"></span> Loading monitored websites…
+        </div>
+        <div class="error-banner" id="dashboard-error" role="alert" hidden></div>
+        <div class="empty-state" id="empty-state" hidden>
+          <div class="empty-illustration" aria-hidden="true"><span>↗</span></div>
+          <h3>No websites yet</h3>
+          <p>Add your first URL to start collecting DNS, HTTP, TLS, and response-time signals.</p>
+          <button class="button button-primary" id="empty-add-button" type="button">Add your first website</button>
+        </div>
+        <div class="site-list" id="site-list" aria-live="polite"></div>
+        <div class="panel-footer" id="panel-footer" hidden>
+          <span id="site-count-label"></span>
+          <span class="footer-note"><span class="small-pulse" aria-hidden="true"></span> Monitoring runs in the background</span>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>Self-hosted monitoring, your data stays in your SQLite database.</span>
+        <a href="/docs" target="_blank" rel="noreferrer">API documentation <span aria-hidden="true">↗</span></a>
+      </footer>
+    </main>
+
+    <dialog class="dialog site-dialog" id="site-dialog" aria-labelledby="site-dialog-title">
+      <form id="site-form" novalidate>
+        <div class="dialog-heading">
+          <div><p class="eyebrow" id="site-dialog-eyebrow">NEW MONITOR</p><h2 id="site-dialog-title">Add a website</h2></div>
+          <button class="icon-button" type="button" data-close-dialog="site-dialog" aria-label="Close dialog">×</button>
+        </div>
+        <input id="site-id" type="hidden" />
+        <label class="field-label" for="site-name">Display name <span>Required</span></label>
+        <input class="text-input" id="site-name" name="name" type="text" maxlength="100" placeholder="Company website" required />
+        <label class="field-label" for="site-url">Website URL <span>Required</span></label>
+        <input class="text-input" id="site-url" name="url" type="url" maxlength="2048" placeholder="https://example.com" required />
+        <p class="field-help">Use an HTTP or HTTPS URL. URL credentials are not accepted.</p>
+        <div class="field-row">
+          <div class="field-column">
+            <label class="field-label" for="site-interval">Check interval <span>seconds · default</span></label>
+            <input class="text-input" id="site-interval" name="interval_seconds" type="number" min="5" max="86400" step="1" placeholder="Application default" />
+          </div>
+          <div class="field-column">
+            <label class="field-label" for="site-timeout">Timeout <span>seconds · default</span></label>
+            <input class="text-input" id="site-timeout" name="timeout_seconds" type="number" min="1" max="120" step="1" placeholder="Application default" />
+          </div>
+        </div>
+        <p class="form-error" id="site-form-error" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" type="button" data-close-dialog="site-dialog">Cancel</button>
+          <button class="button button-primary" id="site-save-button" type="submit">Add website</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">MONITOR DETAILS</p><h2 id="detail-title">Website details</h2></div>
+        <button class="icon-button" type="button" data-close-dialog="detail-dialog" aria-label="Close dialog">×</button>
+      </div>
+      <div id="detail-content"><div class="loading-state"><span class="spinner" aria-hidden="true"></span> Loading details…</div></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
