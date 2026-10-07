@@ -125,6 +125,27 @@ Rules for AI-assisted changes:
 - If an assistant proposes a new dependency, ask what the standard library or
   existing dependency cannot do first.
 
+## Maintainer setup (repository settings)
+
+Files in the repository cannot turn on GitHub security features. A maintainer
+should enable, once per repository:
+
+1. **Settings → Code security and analysis:** Dependency graph, Dependabot
+   alerts, Dependabot security updates, secret scanning with push protection, and
+   private vulnerability reporting. Without the dependency graph, the
+   `Dependency review` workflow reports that it is unsupported (it is
+   deliberately non-blocking).
+2. **Settings → General → Pull Requests:** allow squash merging only, and enable
+   deleting the branch after merge.
+3. **Settings → Branches:** protect `main` — require a pull request, require the
+   `CI` status checks, require review from a code owner (see
+   `.github/CODEOWNERS`), and disallow force-pushes and branch deletion.
+
+The rationale for each setting is documented in
+[SECURITY.md](SECURITY.md#repository-security-settings), and
+[docs/release-checklist.md](docs/release-checklist.md) verifies them before a
+release.
+
 ## Reporting security issues
 
 Do not open a public issue for a vulnerability. Follow

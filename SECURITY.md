@@ -28,6 +28,29 @@ The app follows HTTP redirects for monitored URLs and validates TLS certificates
 - Keep Python dependencies and the host patched; review dependency updates before deployment.
 - Back up SQLite with `whm-backup` and protect/rotate backups.
 
+## Repository security settings
+
+These settings live in GitHub (Settings → Code security and analysis, and
+Settings → Branches) and cannot be enforced by files in the repository. They are
+listed here so an operator can verify or recreate them; the sandbox token used to
+prepare this release has read-only access to repository settings, so enabling
+them is a maintainer action.
+
+| Setting | Why it matters |
+|---|---|
+| **Dependency graph** + **Dependabot alerts** | Required for the `Dependency review` workflow and for advisory alerts on `pyproject.toml` dependencies. |
+| **Dependabot security updates** | Opens pull requests for vulnerable pinned/ranged dependencies. Complements `.github/dependabot.yml`, which handles routine version updates. |
+| **Secret scanning** + **Push protection** | Blocks accidental commits of `WHM_WEBHOOK_URL` tokens or credentials. |
+| **Private vulnerability reporting** | Gives reporters the private channel referenced in [Reporting a vulnerability](#reporting-a-vulnerability). |
+| **Code scanning (CodeQL)** | Optional: adds static analysis on pull requests. |
+| **Branch protection on `main`** | Require the `CI` checks, require a pull request + review, and disallow force-pushes and deletions. |
+| **Restrict who can push / tag** | Only the maintainer should be able to move `main` or publish release tags. |
+| **Squash-only merges, delete branch on merge** | Keeps `main` linear and reviewable, matching the Conventional Commit policy. |
+
+`.github/CODEOWNERS` already marks the contract files (policy, database, config,
+CI, security docs) for mandatory maintainer review once branch protection requires
+code-owner review.
+
 ## Reporting a vulnerability
 
 Do not report secrets or exploit steps in public issues. Use the repository's private security reporting channel if one is configured; otherwise contact the project maintainer privately with a concise reproduction and impact. No private contact endpoint is assumed by this repository.

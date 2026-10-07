@@ -50,6 +50,14 @@ security posture.
 - `httpx2` is a development-only requirement: Starlette's `TestClient` prefers it
   and deprecates `httpx` for tests, while application runtime code continues to use
   `httpx` for outbound checks and webhook delivery.
+- GitHub-side security features (Dependency graph, Dependabot alerts/security
+  updates, secret scanning with push protection, private vulnerability reporting,
+  branch protection on `main`) cannot be enabled from files in the repository; the
+  maintainer checklist is in
+  [CONTRIBUTING.md](CONTRIBUTING.md#maintainer-setup-repository-settings) and the
+  rationale in [SECURITY.md](SECURITY.md#repository-security-settings). The
+  `Dependency review` workflow is intentionally non-blocking until the dependency
+  graph is enabled.
 - Upgrading from 0.1.0 needs no data migration: schema version 1 is unchanged and
   the database and configuration formats are compatible.
 
