@@ -22,6 +22,14 @@ curl --fail http://127.0.0.1:8000/api/health
 
 `/healthz` proves the process can answer; `/readyz` proves SQLite is reachable. Neither proves that monitored targets or the optional webhook are healthy. Dashboard API docs: `/docs`.
 
+### Rebuilding from source
+
+There is no build step: installing the package and starting `python -m app` is the
+whole deployment. When you build a revision yourself, run `make check` first — it
+is the same gate CI runs (lint, formatting, repository consistency, and the tests
+with the 90% coverage floor). `make verify` alone checks the version trio and the
+documentation inventory if you want a fast sanity check.
+
 ### Environment file
 
 `.env.example` is documentation only; the process does not auto-load it. To use a shell file, copy it to a protected location and source it explicitly, or configure `EnvironmentFile=` in systemd. Do not commit real webhook URLs/tokens.

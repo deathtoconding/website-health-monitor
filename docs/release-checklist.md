@@ -10,7 +10,12 @@
 ## Quality gates
 
 - [ ] Start from a clean Python 3.11+ environment and install `python -m pip install -e '.[dev]'`.
-- [ ] `make check` passes (`ruff check .`, `ruff format --check .`, and complete pytest suite with the 90% application line-coverage gate).
+- [ ] `make check` passes (`ruff check .`, `ruff format --check .`, `make verify`, and the complete pytest suite with the 90% application line-coverage gate).
+- [ ] `make verify` reports a consistent version trio (`app/__init__.py`, `pyproject.toml`, newest `CHANGELOG.md` heading) and a complete documentation inventory.
+- [ ] CI is green on Python 3.11, 3.12, and 3.13 for the exact revision being released, including the wheel-asset and `pip check` steps.
+- [ ] The dependency-review check on the release pull request reports no new high/critical advisories (enable the repository's Dependency graph first; see the maintainer setup section of [CONTRIBUTING.md](CONTRIBUTING.md#maintainer-setup-repository-settings)); Dependabot pull requests are either merged or explicitly deferred.
+- [ ] Repository security settings are in place: Dependabot alerts/security updates, secret scanning with push protection, private vulnerability reporting, and branch protection on `main` requiring the `CI` checks.
+- [ ] Contributor-facing docs match reality: `README.md`, `CONTRIBUTING.md`, `AGENTS.md` (and its tool mirrors), `docs/architecture.md`, `docs/runbook.md`, `docs/ai-assisted-development.md`.
 - [ ] `python -m compileall -q app tests` passes.
 - [ ] A built wheel contains `app/static/index.html`, `app/static/app.css`, and `app/static/app.js`.
 - [ ] Start `python -m app` with a temporary `WHM_DATABASE_PATH`; `/healthz` and `/readyz` return success; root dashboard and `/docs` load.

@@ -52,7 +52,7 @@ The story IDs are traceability markers, not Jira issue updates: no Jira integrat
 
 ### Implementation status
 
-**MVP implementation complete in this repository.** Sprint 1–5 scope is implemented and mapped to the plan above. Verification currently includes focused check/policy/database/scheduler/API tests plus a full scheduler → checks → policy → SQLite → incident → webhook end-to-end test. GitHub Actions is configured to run the quality gate on Python 3.11, 3.12, and 3.13; pytest enforces at least 90% application line coverage. Final test/lint results are reported in the implementation handoff, not treated as a substitute for Jira issue updates.
+**MVP implementation complete in this repository; release 0.2.0 adds the contributor, agent, and repository automation described in section 8 without changing runtime behavior.** Sprint 1–5 scope is implemented and mapped to the plan above. Verification includes focused check/policy/database/scheduler/API tests plus a full scheduler → checks → policy → SQLite → incident → webhook end-to-end test. GitHub Actions runs the quality gate (`ruff check`, `ruff format --check`, `make verify`, pytest with at least 90% application line coverage) on Python 3.11, 3.12, and 3.13, and a dependency review runs on every pull request. Local verification results are evidence for a change; they are not a substitute for issue tracking.
 
 ## 5. Implementation sequence
 
@@ -93,7 +93,39 @@ WHM-503 policy → WHM-702 transitions → WHM-703 incidents
 
 The tables above preserve the supplied sprint budgets (no sprint exceeds 30 SP). Jira IDs are traceability markers in this repository; creating/updating remote Jira issues, committing, or tagging a release are separate delivery actions and are not claimed by this implementation handoff.
 
-## 8. Definition of Done / release gates
+## 8. Repository automation and contributor tooling (v0.2.0, post-MVP)
+
+The MVP is functionally complete; release 0.2.0 hardens the project *around* the
+code so that humans and AI assistants can change it safely. It adds no runtime
+behavior.
+
+| Area | What was added | Why |
+|---|---|---|
+| Contributor documentation | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `LICENSE` (MIT), `docs/ai-assisted-development.md` | Make the rules, the workflow, and the license explicit for contributors. |
+| Agent guidance | `AGENTS.md` (canonical) plus mirrors for Copilot, Claude Code, Gemini CLI, Cursor, and Windsurf | AI edits must inherit the same contracts as human edits; one source of truth, small mirrors. |
+| Local hygiene | `.editorconfig`, `.gitattributes`, `.pre-commit-config.yaml`, `.devcontainer/devcontainer.json` | Deterministic whitespace/format/secret checks and a reproducible environment before CI runs. |
+| Repository consistency | `tools/check_repo_consistency.py`, `tests/test_repo_metadata.py`, `make verify` | The version trio and the documentation inventory cannot silently drift. |
+| GitHub configuration | Pull-request and issue templates, `CODEOWNERS`, Dependabot (pip/actions/devcontainers), dependency-review workflow, CI concurrency/timeouts/tool-version reporting | Reviewable changes, visible dependency risk, and CI failures that are diagnosable from the log. |
+| Packaging metadata | SPDX license, authors, keywords, classifiers, project URLs | Publishable, self-describing package metadata. |
+
+Deliberately unchanged in 0.2.0: the health-policy contract, the SQLite schema
+(version 1), the HTTP API, the security posture (loopback-only, no
+authentication), and the single-process deployment model.
+
+### Deferred follow-up work
+
+Tracked as GitHub issues rather than implemented here, because each one changes a
+contract or the trust boundary and needs its own review:
+
+- Content assertions (WHM-305) and response-time history charts / incident-history
+  UI (WHM-803, WHM-804) — the history APIs already exist.
+- Automatic data retention and archival for `check_results` growth.
+- Optional authentication/access layer before any non-loopback deployment.
+- Migrating runtime HTTP calls from `httpx` to `httpx2`, which also changes which
+  trust store verifies certificates and therefore the TLS check's behavior.
+- Multi-region or multi-process monitoring (distributed locking, leader election).
+
+## 9. Definition of Done / release gates
 
 A story/release is Done only when:
 
@@ -101,13 +133,14 @@ A story/release is Done only when:
 - [ ] Appropriate automated tests are added and pass.
 - [ ] Error handling and timestamped operational logging are in place; exceptions are not silently discarded.
 - [ ] Configuration, API, and policy behavior are documented when changed.
-- [ ] No known regression is introduced; relevant tests and lint/format gates pass.
+- [ ] No known regression is introduced; `make check` passes (lint, format, `make verify`, tests with the 90% coverage floor).
+- [ ] The version trio matches and the documentation inventory is intact (`make verify`); agent guidance (`AGENTS.md` and mirrors) is updated when the workflow itself changes.
 - [ ] The application imports and starts from a clean environment.
 - [ ] Runtime data/secrets are ignored by Git; sample configuration contains no secret.
 - [ ] Operations docs cover loopback-only default, one-process constraint, webhook semantics, data location, online backup/restore, restart behavior, and smoke checks.
 - [ ] MVP/post-MVP boundary remains explicit; no cloud, Kubernetes, Redis, authentication, content checking, or paid integration slips into scope.
 
-## 9. Risk register
+## 10. Risk register
 
 | Risk | Impact | Mitigation / remaining limit |
 |---|---|---|

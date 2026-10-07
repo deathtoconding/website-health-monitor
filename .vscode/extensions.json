@@ -1,0 +1,11 @@
+{
+  // Recommended extensions for this repository. VS Code and Codespaces prompt for these.
+  "recommendations": [
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "github.copilot",
+    "github.copilot-chat",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml"
+  ]
+}

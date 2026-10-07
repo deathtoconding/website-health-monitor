@@ -8,10 +8,16 @@ on:
 permissions:
   contents: read
 
+# Supersede an in-flight run for the same ref instead of queueing behind it.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +33,15 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install application and development dependencies
         run: python -m pip install -e '.[dev]'
-      - name: Run lint and tests (90% coverage gate)
+      - name: Report environment versions
+        # Makes an unexplained failure (for example formatter drift) diagnosable
+        # from the log alone.
+        run: |
+          python -VV
+          python -m pip --version
+          ruff --version
+          python -m pytest --version
+      - name: Run lint, metadata verification, and tests (90% coverage gate)
         run: make check
       - name: Compile application and tests
         run: python -m compileall -q app tests

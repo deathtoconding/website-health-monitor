@@ -70,9 +70,7 @@ class HealthPolicy:
 
         if failed:
             failure_count = previous.consecutive_failures + 1
-            interrupted_down_recovery = (
-                previous.recovery_pending and previous.recovery_from_down
-            ) or previous.recovery_from_down
+            interrupted_down_recovery = previous.recovery_from_down
             if interrupted_down_recovery:
                 state = HealthStatus.DOWN
                 reason_code = "RECOVERY_INTERRUPTED"

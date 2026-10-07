@@ -1,5 +1,10 @@
 # Website Health Monitor
 
+[![CI](https://github.com/deathtoconding/website-health-monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/deathtoconding/website-health-monitor/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](pyproject.toml)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://docs.astral.sh/ruff/)
+
 A free, self-hosted application for continuously checking websites and explaining whether they are `HEALTHY`, `DEGRADED`, `DOWN`, or `UNKNOWN`. It uses Python, FastAPI, HTTPX, standard-library DNS/TLS checks, SQLite, and a static HTML/CSS/JavaScript dashboard. No cloud account, paid service, Redis, container platform, or frontend build step is required.
 
 ## MVP capabilities
@@ -96,21 +101,41 @@ Only absolute HTTP/HTTPS URLs are accepted. URLs are normalized before duplicate
 ## Quality checks
 
 ```bash
-make check             # Ruff lint + format check + full pytest suite
+make check             # ruff check + ruff format --check + metadata verify + pytest (90% coverage)
+make test              # pytest only
 make format            # Apply Ruff formatting
-python -m app          # Start the local app
+make verify            # versions, packaging metadata, and documentation inventory
+make hooks             # Install pre-commit hooks for this checkout
+make run               # Start the local app (loopback only)
+make backup DEST=backups/health-monitor-YYYYMMDD.db
 ```
 
-Tests use mock DNS/TLS/HTTP transports; the suite does not require public network access, credentials, or real certificates. Pytest enforces a 90% application line-coverage floor. See [docs/release-checklist.md](docs/release-checklist.md) before producing a release.
+Tests use mock DNS/TLS/HTTP transports; the suite does not require public network access, credentials, or real certificates. Pytest enforces a 90% application line-coverage floor, and `tools/check_repo_consistency.py` fails if the version trio (`app/__init__.py`, `pyproject.toml`, newest `CHANGELOG.md` heading) or the documentation inventory drifts. See [docs/release-checklist.md](docs/release-checklist.md) before producing a release.
+
+GitHub runs the same gate on Python 3.11, 3.12, and 3.13 for every push and pull request, adds a dependency review on pull requests, and tracks updates with Dependabot. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow.
+
+## Contributing and AI-assisted development
+
+Human contributors: start with [CONTRIBUTING.md](CONTRIBUTING.md) (setup, commit style, documentation duties, review expectations).
+
+AI assistants and agent tools: [AGENTS.md](AGENTS.md) is the canonical brief, mirrored for [Claude Code](CLAUDE.md), [Gemini CLI](GEMINI.md), [GitHub Copilot](.github/copilot-instructions.md), [Cursor](.cursor/rules/website-health-monitor.mdc), and [Windsurf](.windsurf/rules/website-health-monitor.md). The workflow — guardrails, prompt recipes, and the review checklist for generated changes — is documented in [docs/ai-assisted-development.md](docs/ai-assisted-development.md).
+
+The one rule that matters most: `make check` is the contract. No assistant may weaken lint rules, the coverage floor, or CI to make a change pass.
 
 ## Operations and project documentation
 
-- [Changelog and first-release notes](CHANGELOG.md)
+- [Changelog and release notes](CHANGELOG.md)
 - [Architecture and health-policy contract](docs/architecture.md)
 - [Runbook, backup, restore, and troubleshooting](docs/runbook.md)
 - [Security boundary and hardening guidance](SECURITY.md)
+- [Contributing guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md)
+- [AI-assisted development guide](docs/ai-assisted-development.md) and [agent instructions](AGENTS.md)
 - [Agile plan, story traceability, and implementation decisions](docs/project-plan.md)
 - [Release checklist](docs/release-checklist.md)
 - Optional Linux systemd unit: [`deploy/website-health-monitor.service`](deploy/website-health-monitor.service)
 
 This MVP is designed for **one application process**. Its scheduler locks are in-process and do not coordinate multiple Uvicorn workers or multiple hosts; run with the default single worker.
+
+## License
+
+[MIT](LICENSE) © 2026 deathtoconding. The software is provided as-is: monitoring results are evidence from one network location, not an uptime guarantee.
