@@ -42,7 +42,7 @@ dependencies = [
 dev = [
   # Test tooling. Starlette's TestClient prefers httpx2 and deprecates httpx for tests,
   # while the runtime check/dispatch code deliberately keeps using httpx.
-  "pytest>=8.4,<9.0",
+  "pytest>=8.4,<10.0",
   "pytest-asyncio>=1.4,<2.0",
   "pytest-cov>=6.3,<8.0",
   "httpx2>=2.13,<3.0",
