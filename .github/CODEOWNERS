@@ -1,0 +1,13 @@
+# Default owner for everything in the repository.
+* @deathtoconding
+
+# Contracts that affect health semantics, data, or the security posture need the
+# maintainer's review even when another contributor prepared the change.
+/app/policy.py @deathtoconding
+/app/database.py @deathtoconding
+/app/config.py @deathtoconding
+/pyproject.toml @deathtoconding
+/.github/workflows/ @deathtoconding
+/SECURITY.md @deathtoconding
+/AGENTS.md @deathtoconding
+/docs/architecture.md @deathtoconding

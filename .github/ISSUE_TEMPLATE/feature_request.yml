@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest a capability or an improvement, including post-MVP ideas
+title: "feat: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project has a deliberate MVP boundary: no authentication, cloud
+        services, Kubernetes, Redis, ORMs, container requirements, telemetry, or
+        frontend build steps. Proposals that cross that boundary are still worth
+        discussing, but they need a written reason and a threat-model review.
+        See docs/project-plan.md for what is intentionally deferred.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need
+      description: What are you trying to do that the current release makes hard?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should the app do? Include API, dashboard, or configuration details if relevant.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Fits the current MVP boundary
+        - Post-MVP item already listed in docs/project-plan.md
+        - Crosses the MVP boundary (needs a decision)
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Operational and security impact
+      description: |
+        Consider: new dependencies, new outbound requests, data growth, file
+        permissions, exposure of the unauthenticated API, and whether the health
+        policy or documentation contracts must change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including "do nothing", manual workarounds, or existing configuration.
+    validations:
+      required: false
+  - type: textarea
+    id: verification
+    attributes:
+      label: How would we verify it?
+      description: Sketch of acceptance criteria or the test that would prove the behavior.
+    validations:
+      required: false

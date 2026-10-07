@@ -1,0 +1,49 @@
+---
+description: Project rules for the Website Health Monitor MVP (FastAPI + SQLite, single process, no auth)
+globs: ["**/*.py", "**/*.md", "**/*.toml", "**/*.yml", "**/*.yaml", "**/*.js", "**/*.css", "**/*.html"]
+alwaysApply: true
+---
+
+# Website Health Monitor — Cursor rules
+
+The canonical brief is [AGENTS.md](../../AGENTS.md). Read it before editing; this
+file is the short operational version.
+
+## Stack and shape
+
+- Python 3.11+ / FastAPI / `httpx` / stdlib `sqlite3` / static HTML+CSS+JS dashboard.
+- One application process. The scheduler, per-site locks, and webhook dispatcher
+  are in-process and must stay that way.
+- Module boundaries: `checks` measure reality, `policy` interprets evidence
+  (no I/O), `database` persists, `monitoring` runs one cycle, `main` serves.
+
+## Commands
+
+- `make check` — full gate (ruff check, ruff format --check, metadata verify,
+  pytest with a 90% coverage floor). Run it before saying work is done.
+- `make test`, `make format`, `make verify`, `make run`,
+  `make backup DEST=backups/health.db`.
+
+## Rules
+
+- Never weaken lint rules, coverage thresholds, or CI workflows to pass a change.
+- Never add authentication, cloud services, Kubernetes, Redis, ORMs, container
+  requirements, or frontend build steps; this is an intentional MVP boundary.
+- Never change the default loopback bind (`WHM_HOST=127.0.0.1`). There is no
+  authentication, so public exposure is unsafe and out of scope.
+- Never log or persist secrets, webhook URLs, credentials, or HTTP response
+  bodies; URLs with credentials are rejected on input.
+- Keep `app/policy.py` deterministic and I/O-free, and always preserve
+  `reason.code`, messages, and check evidence in evaluations.
+- Isolate check failures: one broken check must not cancel its siblings.
+- Timestamps are UTC ISO-8601. A monitored URL is immutable once it has history.
+- Bump `app/__init__.py`, `pyproject.toml`, and the newest `CHANGELOG.md` heading
+  together; `make verify` enforces this.
+- Update the matching document in `docs/` whenever behavior or configuration
+  changes.
+
+## Testing style
+
+Use deterministic fakes, injected clocks, `httpx.MockTransport`, injected DNS
+resolvers, and injected TLS probes. No live network, no sleeps, no real
+certificates, no credentials. Cover the negative path and threshold boundaries.

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/deathtoconding/website-health-monitor/security/advisories/new
+    about: Report exploitable issues privately; never post secrets or exploit steps in a public issue.
+  - name: Operations questions and troubleshooting
+    url: https://github.com/deathtoconding/website-health-monitor/blob/main/docs/runbook.md
+    about: Start with the runbook (start/verify, backup/restore, common symptoms) before opening an issue.
+  - name: Contributing and AI-assistant workflow
+    url: https://github.com/deathtoconding/website-health-monitor/blob/main/CONTRIBUTING.md
+    about: Setup, quality gates, commit style, and how to work with AI assistants in this repository.

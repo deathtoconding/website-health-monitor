@@ -131,11 +131,7 @@ class CheckRunner:
             response = await self.http_client.get(url, timeout=timeout_seconds)
             duration_ms = (time.monotonic() - started) * 1000
             status = CheckStatus.PASS if 200 <= response.status_code < 400 else CheckStatus.FAIL
-            message = (
-                f"HTTP request returned {response.status_code}"
-                if status is CheckStatus.PASS
-                else f"HTTP request returned {response.status_code}"
-            )
+            message = f"HTTP request returned {response.status_code}"
             return CheckResult(
                 check_name="http",
                 status=status,

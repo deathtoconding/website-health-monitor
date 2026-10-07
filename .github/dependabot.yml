@@ -1,0 +1,61 @@
+version: 2
+updates:
+  # Application and development dependencies declared in pyproject.toml.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    labels:
+      - dependencies
+      - python
+    groups:
+      runtime:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+      tooling:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+    ignore:
+      # The application pins its runtime HTTP client below 1.0 on purpose; the
+      # major is reviewed deliberately rather than adopted automatically.
+      - dependency-name: httpx
+        update-types: ["version-update:semver-major"]
+
+  # Workflow actions used by CI and dependency review.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  # Dev container image and features.
+  - package-ecosystem: devcontainers
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    labels:
+      - dependencies
+      - devcontainer

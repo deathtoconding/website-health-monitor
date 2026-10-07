@@ -1,0 +1,24 @@
+# Normalize line endings so Windows and Linux checkouts stay identical.
+* text=auto eol=lf
+
+# Shell and service files must keep LF endings.
+*.sh text eol=lf
+*.service text eol=lf
+Makefile text eol=lf
+
+# Binary and generated artifacts are never diffed or rewritten.
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.whl binary
+*.gz binary
+*.zip binary
+
+# Keep documentation diffs readable in code review.
+*.md diff=markdown
+CHANGELOG.md merge=union

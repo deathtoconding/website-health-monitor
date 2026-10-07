@@ -25,12 +25,15 @@ The central rule is: **checks measure reality → policy interprets evidence →
 ## Runtime boundaries
 
 - `app/config.py`: single validated source of runtime defaults and thresholds.
+- `app/models.py`: shared domain models, status enums, and UTC timestamp helpers.
+- `app/validation.py`: URL normalization/validation; the only place that decides what a valid monitored target is.
 - `app/checks.py`: independently isolated DNS, HTTP, TLS, and latency checks. DNS/HTTP/TLS run concurrently; a failure in one does not cancel sibling checks. The latency result is derived from the HTTP duration rather than a second request.
 - `app/policy.py`: deterministic, explainable state machine over normalized evidence and persisted `PolicyMemory`.
 - `app/database.py`: explicit SQLite schema and transactions. Each completed cycle writes observations, current state/counters, state transition, incident lifecycle, and notification event atomically.
 - `app/monitoring.py`: one cycle and per-website lock shared by scheduled/manual checks.
 - `app/scheduler.py`: in-process recurring schedule with per-website interval, bounded check concurrency, and per-site exception isolation.
 - `app/notifications.py`: optional asynchronous webhook outbox delivery and retries.
+- `app/backup.py` and `app/filesystem.py`: online, integrity-checked SQLite backup and owner-only POSIX permissions.
 - `app/main.py`: API, UI serving, health endpoints, and application lifecycle.
 - `app/static/`: no-build static dashboard.
 
@@ -100,4 +103,26 @@ All date-times persisted by the app are UTC ISO-8601 strings. The SQLite schema 
 - A scheduled site's exception is logged and does not terminate the scheduler or another site's cycle.
 - One asyncio lock per website prevents overlap between manual and scheduled cycles within the single process and serializes website mutations against an active cycle; conflicting API operations receive HTTP 409, scheduler overlap is skipped.
 - A slow check is bounded by its configured timeout; global individual-check concurrency is bounded.
-- Process restart loses only in-memory due-time bookkeeping; persistent last-check timestamps let the scheduler avoid unnecessary catch-up bursts. Enabled sites with no prior check run shortly after startup.
+- Process restart loses only in-memory due-time bookkeeping; persistent last-check timestamps let the scheduler avoid unnecessary catch-up bursts. Enabled sites with no prior check run shortly after startup. All scheduling and mutation happens on the event loop thread, so the repository's per-operation SQLite connections never race inside one process.
+
+## Repository automation and contracts
+
+| Contract | Owner | Enforced by |
+|---|---|---|
+| Health-policy semantics and reason codes | `app/policy.py` + this document | `tests/test_policy.py`, review |
+| SQLite schema and timestamp format | `app/database.py` (`SCHEMA_VERSION`) | `tests/test_database.py`, backup/restore rehearsal |
+| Configuration defaults and validation | `app/config.py` + `README.md` + `.env.example` | `tests/test_config_and_validation.py` |
+| Runtime settings surface | `Settings` fields (`WHM_*`) | startup validation, `SECURITY.md` |
+| Version trio (`app/__init__.py`, `pyproject.toml`, newest `CHANGELOG.md` heading) | maintainers | `make verify` (`tools/check_repo_consistency.py`), `tests/test_repo_metadata.py` |
+| Documentation inventory (project, GitHub, and agent files) | maintainers | `make verify` |
+| Formatting and linting | Ruff configuration in `pyproject.toml` | `make check`, pre-commit |
+| Test determinism (no live network, no sleeps) | `tests/` | review + CI on Python 3.11–3.13 |
+| Dependency updates | Dependabot + dependency review | CI on pull requests |
+
+Two HTTP clients exist on purpose and must not be conflated:
+`httpx` is the **runtime** client used by `app/checks.py` and
+`app/notifications.py` for outbound monitoring and webhook delivery, while
+`httpx2` is a **development-only** dependency that Starlette's `TestClient`
+prefers (it deprecates `httpx` for tests). Migrating runtime code to `httpx2` is a
+deliberate, separately reviewed change because it would alter the TLS/trust-store
+behavior of real checks.
